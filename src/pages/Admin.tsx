@@ -35,6 +35,7 @@ const Admin = () => {
   const [imageFile, setImageFile] = useState<string>('');
   const [imageFileName, setImageFileName] = useState<string>('');
   const [manualStoreStatus, setManualStoreStatus] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState<'add' | 'view'>('add');
   const [formData, setFormData] = useState({
     name: '',
     category: 'верх',
@@ -227,40 +228,62 @@ const Admin = () => {
             <CardTitle className="text-base sm:text-lg">{t('storeStatus')}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                <Button
-                  variant={manualStoreStatus === true ? 'default' : 'outline'}
-                  onClick={() => handleStoreStatusChange(true)}
-                  size="sm"
-                  className="w-full sm:w-auto text-xs sm:text-sm"
-                >
-                  {t('storeOpen')}
-                </Button>
-                <Button
-                  variant={manualStoreStatus === false ? 'default' : 'outline'}
-                  onClick={() => handleStoreStatusChange(false)}
-                  size="sm"
-                  className="w-full sm:w-auto text-xs sm:text-sm"
-                >
-                  {t('storeClosed')}
-                </Button>
-                <Button
-                  variant={manualStoreStatus === null ? 'default' : 'outline'}
-                  onClick={handleAutoStatus}
-                  size="sm"
-                  className="w-full sm:w-auto text-xs sm:text-sm"
-                >
-                  Авто (9:00-20:00)
-                </Button>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Button
+                variant={manualStoreStatus === true ? 'default' : 'outline'}
+                onClick={() => handleStoreStatusChange(true)}
+                size="sm"
+                className="text-xs sm:text-sm h-9"
+              >
+                🟢 {t('storeOpen')}
+              </Button>
+              <Button
+                variant={manualStoreStatus === false ? 'default' : 'outline'}
+                onClick={() => handleStoreStatusChange(false)}
+                size="sm"
+                className="text-xs sm:text-sm h-9"
+              >
+                🔴 {t('storeClosed')}
+              </Button>
+              <Button
+                variant={manualStoreStatus === null ? 'default' : 'outline'}
+                onClick={handleAutoStatus}
+                size="sm"
+                className="text-xs sm:text-sm h-9"
+              >
+                ⏰ Авто
+              </Button>
             </div>
+            {manualStoreStatus === null && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Работает 9:00-20:00
+              </p>
+            )}
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
-          {/* Форма добавления товара */}
-          <Card className="lg:col-span-1 sticky top-4 h-fit">
+        {/* Переключатель вкладок */}
+        <div className="flex gap-2 mb-4 sm:mb-6">
+          <Button
+            variant={activeTab === 'add' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('add')}
+            className="flex-1 sm:flex-none"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Добавить товар
+          </Button>
+          <Button
+            variant={activeTab === 'view' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('view')}
+            className="flex-1 sm:flex-none"
+          >
+            Посмотреть товары ({products.length})
+          </Button>
+        </div>
+
+        {/* Форма добавления товара */}
+        {activeTab === 'add' && (
+          <Card>
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -382,9 +405,11 @@ const Admin = () => {
               </form>
             </CardContent>
           </Card>
+        )}
 
-          {/* Список товаров */}
-          <div className="lg:col-span-2">
+        {/* Список товаров */}
+        {activeTab === 'view' && (
+          <div>
             <Card>
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="text-base sm:text-lg">{t('allProducts')} ({products.length})</CardTitle>
@@ -428,7 +453,7 @@ const Admin = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
+        )}
       </main>
 
       <Footer />
