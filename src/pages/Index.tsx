@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProducts, Product } from '@/utils/storage';
+import { getProducts, Product, subscribeToProducts } from '@/utils/storage';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
@@ -14,9 +14,36 @@ const Index = () => {
   const [selectedSize, setSelectedSize] = useState('all');
 
   useEffect(() => {
-    const loadedProducts = getProducts();
-    setProducts(loadedProducts);
-    setFilteredProducts(loadedProducts);
+    // Загружаем товары при монтировании
+    const loadInitialProducts = async () => {
+      try {
+        const loadedProducts = await getProducts();
+        setProducts(loadedProducts);
+        setFilteredProducts(loadedProducts);
+      } catch (error) {
+        console.error('Ошибка загрузки товаров:', error);
+      }
+    };
+
+    loadInitialProducts();
+
+    // Подписываемся на изменения товаров в реальном времени
+    const unsubscribe = subscribeToProducts((updatedProducts) => {
+      setProducts(updatedProducts);
+      // Обновляем отфильтрованные товары
+      let filtered = updatedProducts;
+      if (selectedCategory !== 'all') {
+        filtered = filtered.filter(p => p.category === selectedCategory);
+      }
+      if (selectedSize !== 'all') {
+        filtered = filtered.filter(p => p.size.includes(selectedSize));
+      }
+      setFilteredProducts(filtered);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

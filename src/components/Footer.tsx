@@ -25,11 +25,11 @@ const Footer = () => {
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-smooth"
               >
                 <Phone className="w-4 h-4" />
-                <span>+996 999 00 00 00</span>
+                <span><a href="tel:+996 998 20 20 23">+996 998 25 20 23</a></span>
               </a>
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{t('address')}: г. Кара-Куль</span>
+                <span>{t('address')} <a href="https://2gis.kg/kara-kul/geo/70030076598366649" target='blank'>: г. Кара-Куль</a></span>
               </div>
             </div>
           </div>

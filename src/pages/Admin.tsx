@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProducts, addProduct, deleteProduct, isAuthenticated, logout, Product, setStoreStatus, getStoreStatus, clearStoreStatus } from '@/utils/storage';
+import { 
+  getProducts, 
+  addProduct, 
+  deleteProduct, 
+  isAuthenticated, 
+  logout, 
+  Product, 
+  setStoreStatus, 
+  getStoreStatus, 
+  clearStoreStatus,
+  subscribeToProducts,
+  subscribeToStoreStatus,
+  initializeProducts
+} from '@/utils/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,13 +49,50 @@ const Admin = () => {
       navigate('/login');
       return;
     }
+
+    // Инициализация Firebase при первом запуске
+    initializeProducts().catch(console.error);
+
+    // Загружаем товары асинхронно
     loadProducts();
-    const status = getStoreStatus();
-    setManualStoreStatus(status);
+    
+    // Загружаем статус магазина асинхронно
+    loadStoreStatus();
+
+    // Подписываемся на изменения товаров в реальном времени
+    const unsubscribeProducts = subscribeToProducts((updatedProducts) => {
+      setProducts(updatedProducts);
+    });
+
+    // Подписываемся на изменения статуса магазина в реальном времени
+    const unsubscribeStatus = subscribeToStoreStatus((status) => {
+      setManualStoreStatus(status);
+    });
+
+    // Очистка подписок при размонтировании
+    return () => {
+      unsubscribeProducts();
+      unsubscribeStatus();
+    };
   }, [navigate]);
 
-  const loadProducts = () => {
-    setProducts(getProducts());
+  const loadProducts = async () => {
+    try {
+      const loadedProducts = await getProducts();
+      setProducts(loadedProducts);
+    } catch (error) {
+      console.error('Ошибка загрузки товаров:', error);
+      toast.error('Ошибка загрузки товаров');
+    }
+  };
+
+  const loadStoreStatus = async () => {
+    try {
+      const status = await getStoreStatus();
+      setManualStoreStatus(status);
+    } catch (error) {
+      console.error('Ошибка загрузки статуса магазина:', error);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +120,7 @@ const Admin = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.price || !imageFile || selectedSizes.length === 0) {
@@ -78,32 +128,42 @@ const Admin = () => {
       return;
     }
 
-    addProduct({
-      name: formData.name,
-      category: formData.category,
-      price: parseFloat(formData.price),
-      size: selectedSizes,
-      inStock: formData.inStock,
-      image: imageFile
-    });
+    try {
+      await addProduct({
+        name: formData.name,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        size: selectedSizes,
+        inStock: formData.inStock,
+        image: imageFile
+      });
 
-    toast.success(t('productAdded'));
-    setFormData({
-      name: '',
-      category: 'верх',
-      price: '',
-      inStock: true
-    });
-    setSelectedSizes(['M']);
-    setImageFile('');
-    setImageFileName('');
-    loadProducts();
+      toast.success(t('productAdded'));
+      setFormData({
+        name: '',
+        category: 'верх',
+        price: '',
+        inStock: true
+      });
+      setSelectedSizes(['M']);
+      setImageFile('');
+      setImageFileName('');
+      // Товары обновятся автоматически через подписку
+    } catch (error) {
+      console.error('Ошибка добавления товара:', error);
+      toast.error('Ошибка добавления товара');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    toast.success(t('productDeleted'));
-    loadProducts();
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      toast.success(t('productDeleted'));
+      // Товары обновятся автоматически через подписку
+    } catch (error) {
+      console.error('Ошибка удаления товара:', error);
+      toast.error('Ошибка удаления товара');
+    }
   };
 
   const handleLogout = () => {
@@ -112,16 +172,26 @@ const Admin = () => {
     navigate('/login');
   };
 
-  const handleStoreStatusChange = (isOpen: boolean) => {
-    setStoreStatus(isOpen);
-    setManualStoreStatus(isOpen);
-    toast.success(`Магазин теперь ${isOpen ? 'открыт' : 'закрыт'}`);
+  const handleStoreStatusChange = async (isOpen: boolean) => {
+    try {
+      await setStoreStatus(isOpen);
+      setManualStoreStatus(isOpen);
+      toast.success(`Магазин теперь ${isOpen ? 'открыт' : 'закрыт'}`);
+    } catch (error) {
+      console.error('Ошибка изменения статуса магазина:', error);
+      toast.error('Ошибка изменения статуса магазина');
+    }
   };
 
-  const handleAutoStatus = () => {
-    clearStoreStatus();
-    setManualStoreStatus(null);
-    toast.success('Статус переключен на автоматический');
+  const handleAutoStatus = async () => {
+    try {
+      await clearStoreStatus();
+      setManualStoreStatus(null);
+      toast.success('Статус переключен на автоматический');
+    } catch (error) {
+      console.error('Ошибка очистки статуса магазина:', error);
+      toast.error('Ошибка очистки статуса магазина');
+    }
   };
 
   return (

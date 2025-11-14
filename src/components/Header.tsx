@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Store, Sun, Moon, Laptop } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { isStoreOpen } from '@/utils/storage';
+import { isStoreOpen, subscribeToStoreStatus } from '@/utils/storage';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -17,13 +17,47 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [storeOpen, setStoreOpen] = useState(isStoreOpen());
+  const [storeOpen, setStoreOpen] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStoreOpen(isStoreOpen());
-    }, 5000); // Проверяем каждые 5 секунд
-    return () => clearInterval(interval);
+    // Загружаем начальный статус
+    const loadInitialStatus = async () => {
+      try {
+        const status = await isStoreOpen();
+        setStoreOpen(status);
+      } catch (error) {
+        console.error('Ошибка загрузки статуса магазина:', error);
+      }
+    };
+
+    loadInitialStatus();
+
+    // Подписываемся на изменения статуса в реальном времени
+    const unsubscribe = subscribeToStoreStatus((status) => {
+      if (status !== null) {
+        setStoreOpen(status);
+      } else {
+        // Если статус null, проверяем автоматически по времени
+        const now = new Date();
+        const hour = now.getHours();
+        setStoreOpen(hour >= 9 && hour < 20);
+      }
+    });
+
+    // Также проверяем автоматический статус каждые 5 секунд
+    const interval = setInterval(async () => {
+      try {
+        const status = await isStoreOpen();
+        setStoreOpen(status);
+      } catch (error) {
+        console.error('Ошибка проверки статуса магазина:', error);
+      }
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, []);
 
   const navItems = [
