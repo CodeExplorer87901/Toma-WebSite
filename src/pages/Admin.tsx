@@ -53,13 +53,14 @@ const Admin = () => {
     // Инициализация Firebase при первом запуске
     initializeProducts().catch(console.error);
 
-    // Загружаем товары асинхронно
+    // Загружаем товары асинхронно (это синхронизирует localStorage с Firebase)
     loadProducts();
     
     // Загружаем статус магазина асинхронно
     loadStoreStatus();
 
     // Подписываемся на изменения товаров в реальном времени
+    // Подписка автоматически синхронизирует localStorage с Firebase
     const unsubscribeProducts = subscribeToProducts((updatedProducts) => {
       setProducts(updatedProducts);
     });
@@ -160,16 +161,22 @@ const Admin = () => {
       return;
     }
     
+    // Сохраняем текущий список для отката в случае ошибки
+    const previousProducts = [...products];
+    
+    // Сразу обновляем локальное состояние (оптимистичное обновление)
+    setProducts(prev => prev.filter(p => p.id !== id));
+    
     try {
       await deleteProduct(id);
       toast.success(t('productDeleted'));
-      // Принудительно обновляем список товаров
-      await loadProducts();
+      // Подписка автоматически обновит список через событие localStorageChange
+      // Не нужно вызывать getProducts() - это может вернуть старые данные
     } catch (error) {
       console.error('Ошибка удаления товара:', error);
       toast.error('Ошибка удаления товара');
-      // Все равно пытаемся обновить список на случай если удаление прошло локально
-      await loadProducts();
+      // Откатываем изменения в случае ошибки
+      setProducts(previousProducts);
     }
   };
 

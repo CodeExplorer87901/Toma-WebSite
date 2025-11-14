@@ -155,6 +155,18 @@ export const initializeProducts = async (): Promise<void> => {
 
 // Получить все товары
 export const getProducts = async (): Promise<Product[]> => {
+  // Проверяем, настроен ли Firebase
+  const isFirebaseConfigured = 
+    import.meta.env.VITE_FIREBASE_API_KEY && 
+    import.meta.env.VITE_FIREBASE_API_KEY !== "your-api-key" &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID !== "your-project-id";
+  
+  if (!isFirebaseConfigured) {
+    // Если Firebase не настроен, просто возвращаем из localStorage
+    return getLocalProducts();
+  }
+  
   try {
     const productsRef = collection(db, PRODUCTS_COLLECTION);
     const snapshot = await getDocs(productsRef);
@@ -162,15 +174,23 @@ export const getProducts = async (): Promise<Product[]> => {
     if (snapshot.empty) {
       // Если товаров нет, инициализируем начальные
       await initializeProducts();
-      return initialProducts;
+      const products = initialProducts;
+      // Синхронизируем с localStorage
+      localStorage.setItem('outfit_store_products', JSON.stringify(products));
+      return products;
     }
     
-    return snapshot.docs.map(doc => ({
+    const products = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     } as Product));
+    
+    // Синхронизируем localStorage с данными из Firebase
+    localStorage.setItem('outfit_store_products', JSON.stringify(products));
+    
+    return products;
   } catch (error) {
-    console.error('Ошибка получения товаров:', error);
+    console.error('Ошибка получения товаров из Firebase:', error);
     // Fallback на localStorage если Firebase не настроен
     return getLocalProducts();
   }
@@ -180,6 +200,43 @@ export const getProducts = async (): Promise<Product[]> => {
 export const subscribeToProducts = (
   callback: (products: Product[]) => void
 ): (() => void) => {
+  // Проверяем, настроен ли Firebase (не дефолтные значения)
+  const isFirebaseConfigured = 
+    import.meta.env.VITE_FIREBASE_API_KEY && 
+    import.meta.env.VITE_FIREBASE_API_KEY !== "your-api-key" &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID !== "your-project-id";
+  
+  if (!isFirebaseConfigured) {
+    // Если Firebase не настроен, используем подписку на изменения localStorage
+    console.log('Firebase не настроен, используем localStorage подписку');
+    
+    // Сразу вызываем callback с текущими данными
+    callback(getLocalProducts());
+    
+    // Слушаем изменения в localStorage через событие storage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'outfit_store_products') {
+        callback(getLocalProducts());
+      }
+    };
+    
+    // Слушаем изменения в том же окне через кастомное событие
+    const handleCustomStorageChange = () => {
+      callback(getLocalProducts());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
+    
+    // Возвращаем функцию отписки
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
+  }
+  
+  // Если Firebase настроен, используем подписку Firestore
   const productsRef = collection(db, PRODUCTS_COLLECTION);
   
   return onSnapshot(
@@ -189,12 +246,17 @@ export const subscribeToProducts = (
         id: doc.id,
         ...doc.data()
       } as Product));
+      
+      // Синхронизируем localStorage с данными из Firebase
+      localStorage.setItem('outfit_store_products', JSON.stringify(products));
+      
       callback(products);
     },
     (error) => {
       console.error('Ошибка подписки на товары:', error);
-      // Fallback на localStorage
-      callback(getLocalProducts());
+      // Fallback на localStorage только если Firebase действительно не работает
+      const localProducts = getLocalProducts();
+      callback(localProducts);
     }
   );
 };
@@ -203,38 +265,80 @@ export const subscribeToProducts = (
 export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
   try {
     const productsRef = collection(db, PRODUCTS_COLLECTION);
+    // Не добавляем id в данные, Firestore создаст свой
+    const docRef = await addDoc(productsRef, product);
+    // Возвращаем товар с ID документа Firestore
     const newProduct = {
       ...product,
-      id: Date.now().toString()
-    };
-    const docRef = await addDoc(productsRef, newProduct);
-    return {
-      ...newProduct,
       id: docRef.id
     };
+    
+    // Синхронизируем с localStorage
+    try {
+      const products = getLocalProducts();
+      products.push(newProduct);
+      localStorage.setItem('outfit_store_products', JSON.stringify(products));
+      // Отправляем кастомное событие для обновления подписки (если Firebase не настроен)
+      window.dispatchEvent(new Event('localStorageChange'));
+    } catch (localError) {
+      console.warn('Не удалось синхронизировать с localStorage:', localError);
+    }
+    
+    return newProduct;
   } catch (error) {
-    console.error('Ошибка добавления товара:', error);
-    throw error;
+    console.error('Ошибка добавления товара в Firebase:', error);
+    // Fallback на localStorage если Firebase не настроен
+    try {
+      const products = getLocalProducts();
+      const newProduct = {
+        ...product,
+        id: Date.now().toString()
+      };
+      products.push(newProduct);
+      localStorage.setItem('outfit_store_products', JSON.stringify(products));
+      return newProduct;
+    } catch (localError) {
+      console.error('Ошибка добавления товара в localStorage:', localError);
+      throw error; // Выбрасываем оригинальную ошибку Firebase
+    }
   }
 };
 
 // Удалить товар
 export const deleteProduct = async (id: string): Promise<void> => {
+  console.log('Попытка удаления товара с ID:', id);
+  
+  let deletedFromFirebase = false;
+  
+  // Пытаемся удалить из Firebase (если настроен)
   try {
     const productRef = doc(db, PRODUCTS_COLLECTION, id);
     await deleteDoc(productRef);
-  } catch (error) {
-    console.error('Ошибка удаления товара из Firebase:', error);
-    // Fallback на localStorage если Firebase не настроен
-    try {
-      const products = getLocalProducts();
-      const filtered = products.filter(p => p.id !== id);
-      localStorage.setItem('outfit_store_products', JSON.stringify(filtered));
-    } catch (localError) {
-      console.error('Ошибка удаления товара из localStorage:', localError);
-      throw error; // Выбрасываем оригинальную ошибку Firebase
-    }
+    console.log('Товар успешно удален из Firebase');
+    deletedFromFirebase = true;
+  } catch (error: any) {
+    console.log('Firebase удаление пропущено (возможно не настроен):', error?.code || error?.message);
   }
+  
+  // Всегда удаляем из localStorage для синхронизации
+  try {
+    const products = getLocalProducts();
+    const beforeCount = products.length;
+    const filtered = products.filter(p => p.id !== id);
+    
+    if (filtered.length < beforeCount || deletedFromFirebase) {
+      localStorage.setItem('outfit_store_products', JSON.stringify(filtered));
+      console.log('Товар успешно удален из localStorage');
+      
+      // Отправляем кастомное событие для обновления подписки (если Firebase не настроен)
+      window.dispatchEvent(new Event('localStorageChange'));
+    }
+  } catch (localError) {
+    console.error('Ошибка удаления товара из localStorage:', localError);
+  }
+  
+  // Если Firebase работает, но товар не найден, это нормально (возможно уже удален)
+  // Если Firebase не работает, удаление из localStorage уже выполнено
 };
 
 // Обновить товар

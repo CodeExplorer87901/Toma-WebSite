@@ -21,15 +21,17 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">{t('contacts')}</h3>
             <div className="space-y-3">
               <a
-                href="tel:+996999000000"
+                href="tel:+996998252023"
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-smooth"
               >
                 <Phone className="w-4 h-4" />
-                <span><a href="tel:+996 998 20 20 23">+996 998 25 20 23</a></span>
+                <span>+996 998 25 20 23</span>
               </a>
               <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{t('address')} <a href="https://2gis.kg/kara-kul/geo/70030076598366649" target='blank'>: г. Кара-Куль</a></span>
+                <span>
+                  {t('address')}: <a href="https://2gis.kg/kara-kul/geo/70030076598366649" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-smooth">г. Кара-Куль</a>
+                </span>
               </div>
             </div>
           </div>
