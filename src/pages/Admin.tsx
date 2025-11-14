@@ -212,38 +212,44 @@ const Admin = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">{t('dashboard')}</h1>
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="w-4 h-4 mr-2" />
-            {t('logout')}
+      <main className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex items-center justify-between mb-4 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{t('dashboard')}</h1>
+          <Button onClick={handleLogout} variant="outline" size="sm" className="sm:size-default">
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">{t('logout')}</span>
           </Button>
         </div>
 
         {/* Управление статусом магазина */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>{t('storeStatus')}</CardTitle>
+        <Card className="mb-4 sm:mb-8">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">{t('storeStatus')}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <div className="flex items-center gap-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <Button
                   variant={manualStoreStatus === true ? 'default' : 'outline'}
                   onClick={() => handleStoreStatusChange(true)}
+                  size="sm"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {t('storeOpen')}
                 </Button>
                 <Button
                   variant={manualStoreStatus === false ? 'default' : 'outline'}
                   onClick={() => handleStoreStatusChange(false)}
+                  size="sm"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {t('storeClosed')}
                 </Button>
                 <Button
                   variant={manualStoreStatus === null ? 'default' : 'outline'}
                   onClick={handleAutoStatus}
+                  size="sm"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   Авто (9:00-20:00)
                 </Button>
@@ -252,17 +258,17 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Форма добавления товара */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="w-5 h-5" />
+          <Card className="lg:col-span-1 sticky top-4 h-fit">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                 {t('addProduct')}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">{t('productName')}</Label>
                   <Input
@@ -307,7 +313,7 @@ const Admin = () => {
 
                 <div className="space-y-2">
                   <Label>{t('selectSizes')}</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {availableSizes.map((size) => (
                       <div key={size} className="flex items-center space-x-2">
                         <Checkbox
@@ -369,7 +375,7 @@ const Admin = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full text-sm sm:text-base py-2 sm:py-2.5">
                   <Plus className="w-4 h-4 mr-2" />
                   {t('addProduct')}
                 </Button>
@@ -380,28 +386,28 @@ const Admin = () => {
           {/* Список товаров */}
           <div className="lg:col-span-2">
             <Card>
-              <CardHeader>
-                <CardTitle>{t('allProducts')} ({products.length})</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">{t('allProducts')} ({products.length})</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="space-y-2 sm:space-y-3">
                   {products.map((product) => (
                     <div
                       key={product.id}
-                      className="flex items-center gap-4 p-4 bg-secondary rounded-lg border border-border"
+                      className="flex items-center gap-2 sm:gap-4 p-2 sm:p-4 bg-secondary rounded-lg border border-border"
                     >
                       <img
                         src={product.image}
                         alt={product.name}
-                        className="w-16 h-16 object-cover rounded"
+                        className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{product.name}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{product.name}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                           {product.category} • {product.size.join(', ')} • {product.price} сом
                         </p>
                         <span
-                          className={`inline-block mt-1 text-xs font-medium ${
+                          className={`inline-block mt-0.5 sm:mt-1 text-[10px] sm:text-xs font-medium ${
                             product.inStock ? 'text-success' : 'text-destructive'
                           }`}
                         >
@@ -412,8 +418,9 @@ const Admin = () => {
                         size="icon"
                         variant="destructive"
                         onClick={() => handleDelete(product.id)}
+                        className="h-8 w-8 sm:h-10 sm:w-10"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
                     </div>
                   ))}

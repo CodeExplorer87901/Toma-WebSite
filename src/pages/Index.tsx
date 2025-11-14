@@ -71,19 +71,19 @@ const Index = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-secondary to-background py-12 md:py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight">
+        <section className="bg-gradient-to-b from-secondary to-background py-8 sm:py-12 md:py-20">
+          <div className="container mx-auto px-3 sm:px-4 text-center">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-3 sm:mb-4 tracking-tight">
               {t('storeName')}
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto px-2">
               {t('storeSlogan')}
             </p>
           </div>
         </section>
 
         {/* Filters */}
-        <section className="container mx-auto px-4 -mt-6">
+        <section className="container mx-auto px-3 sm:px-4 -mt-4 sm:-mt-6">
           <ProductFilters
             selectedCategory={selectedCategory}
             selectedSize={selectedSize}
@@ -94,15 +94,15 @@ const Index = () => {
         </section>
 
         {/* Products Grid */}
-        <section className="container mx-auto px-4 py-12">
+        <section className="container mx-auto px-3 sm:px-4 py-8 sm:py-12">
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-xl text-muted-foreground">
+            <div className="text-center py-12 sm:py-16">
+              <p className="text-base sm:text-xl text-muted-foreground px-4">
                 Товары не найдены. Попробуйте изменить фильтры.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

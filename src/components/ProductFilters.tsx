@@ -43,13 +43,13 @@ const ProductFilters = ({
     { value: 'Универсальный', label: t('universal') }
   ];
   return (
-    <div className="bg-card border border-border rounded-lg p-4 md:p-6">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('filters')}</h2>
+    <div className="bg-card border border-border rounded-lg p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-center justify-between">
+        <h2 className="text-base sm:text-lg font-semibold">{t('filters')}</h2>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto">
           <Select value={selectedCategory} onValueChange={onCategoryChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[160px] md:w-[180px] h-9 sm:h-10 text-sm">
               <SelectValue placeholder={t('category')} />
             </SelectTrigger>
             <SelectContent>
@@ -62,7 +62,7 @@ const ProductFilters = ({
           </Select>
 
           <Select value={selectedSize} onValueChange={onSizeChange}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[160px] md:w-[180px] h-9 sm:h-10 text-sm">
               <SelectValue placeholder={t('size')} />
             </SelectTrigger>
             <SelectContent>
@@ -77,7 +77,7 @@ const ProductFilters = ({
           <Button
             variant="outline"
             onClick={onReset}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto h-9 sm:h-10 text-sm"
           >
             {t('reset')}
           </Button>
