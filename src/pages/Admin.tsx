@@ -156,13 +156,20 @@ const Admin = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Вы уверены, что хотите удалить этот товар?')) {
+      return;
+    }
+    
     try {
       await deleteProduct(id);
       toast.success(t('productDeleted'));
-      // Товары обновятся автоматически через подписку
+      // Принудительно обновляем список товаров
+      await loadProducts();
     } catch (error) {
       console.error('Ошибка удаления товара:', error);
       toast.error('Ошибка удаления товара');
+      // Все равно пытаемся обновить список на случай если удаление прошло локально
+      await loadProducts();
     }
   };
 

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://codeexplorer87901.github.io/Tomy",
+  "homepage": "https://codeexplorer87901.github.io/Toma-WebSite",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

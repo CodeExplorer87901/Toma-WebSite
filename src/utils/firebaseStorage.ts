@@ -224,8 +224,16 @@ export const deleteProduct = async (id: string): Promise<void> => {
     const productRef = doc(db, PRODUCTS_COLLECTION, id);
     await deleteDoc(productRef);
   } catch (error) {
-    console.error('Ошибка удаления товара:', error);
-    throw error;
+    console.error('Ошибка удаления товара из Firebase:', error);
+    // Fallback на localStorage если Firebase не настроен
+    try {
+      const products = getLocalProducts();
+      const filtered = products.filter(p => p.id !== id);
+      localStorage.setItem('outfit_store_products', JSON.stringify(filtered));
+    } catch (localError) {
+      console.error('Ошибка удаления товара из localStorage:', localError);
+      throw error; // Выбрасываем оригинальную ошибку Firebase
+    }
   }
 };
 

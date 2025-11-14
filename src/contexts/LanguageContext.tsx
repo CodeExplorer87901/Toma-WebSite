@@ -10,7 +10,7 @@ interface LanguageContextType {
 
 const translations = {
   ru: {
-    storeName: 'OUTFIT STORE',
+    storeName: 'TOMA',
     storeSlogan: 'стиль, который говорит за тебя',
     home: 'Главная',
     contacts: 'Контакты',
@@ -61,7 +61,7 @@ const translations = {
     allRightsReserved: 'Все права защищены'
   },
   kg: {
-    storeName: 'OUTFIT STORE',
+    storeName: 'TOMA',
     storeSlogan: 'стилиңиз сиз жөнүндө айтат',
     home: 'Башкы бет',
     contacts: 'Байланыш',
